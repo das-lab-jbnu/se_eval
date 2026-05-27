@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SE 평가 운영</title>
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <header>
+      <h1>SE 평가 운영</h1>
+      <nav>
+        <a href="/">운영자</a>
+        <a href="/judge">학생 평가</a>
+        <a href="/professor">교수 평가</a>
+      </nav>
+    </header>
+    <main class="layout">
+      <section class="panel">
+        <h2>발표자 선택</h2>
+        <form id="selectForm">
+          <label>
+            분반
+            <select id="classId"></select>
+          </label>
+          <label>
+            발표자
+            <select id="presenterName"></select>
+          </label>
+          <button class="primary" type="submit">선택 및 심사위원 추첨</button>
+          <p class="message" data-message></p>
+        </form>
+      </section>
+      <section class="panel">
+        <h2>현재 심사위원 10명</h2>
+        <ol id="judgeList" class="judge-list"></ol>
+        <div id="summary" class="summary"></div>
+      </section>
+    </main>
+    <script src="/static/app.js"></script>
+    <script>window.seEval.initAdmin();</script>
+  </body>
+</html>
