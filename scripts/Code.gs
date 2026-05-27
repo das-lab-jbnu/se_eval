@@ -271,7 +271,7 @@ function round(value) {
 }
 
 function json(payload, callback) {
-  const body = JSON.stringify({ ok: true, ...payload });
+  const body = JSON.stringify(payload);
   if (callback) {
     return ContentService
       .createTextOutput(`${callback}(${body});`)
