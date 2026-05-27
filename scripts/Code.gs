@@ -38,29 +38,43 @@ const RUBRIC = [
 
 function doGet(event) {
   const action = event.parameter.action;
-  if (action === 'getStudents') return json(STUDENTS);
-  if (action === 'getRubric') return json({ rubric: RUBRIC });
-  if (action === 'getCurrentSession') return json({ session: readCurrentSession() });
-  if (action === 'getSummary') {
-    return json({
-      summary: buildSummary(event.parameter.class_id, event.parameter.presenter_name),
-    });
-  }
-  if (action === 'getDebugInfo') return json({ debug: getDebugInfo() });
-  return json({ ok: false, error: '알 수 없는 요청입니다.' });
+  const payload = parsePayload(event);
+  return json(routeAction(action, payload), event.parameter.callback);
 }
 
 function doPost(event) {
   const body = JSON.parse(event.postData.contents || '{}');
-  if (body.action === 'selectPresentation') {
-    const session = createSession(body.class_id, body.presenter_name);
-    return json({ session });
+  return json(routeAction(body.action, body));
+}
+
+function parsePayload(event) {
+  if (event.parameter.payload) {
+    return JSON.parse(event.parameter.payload);
   }
-  if (body.action === 'submitEvaluation') {
-    const evaluation = saveEvaluation(body.evaluation);
-    return json({ evaluation });
+  return event.parameter;
+}
+
+function routeAction(action, payload) {
+  if (action === 'getStudents') return STUDENTS;
+  if (action === 'getRubric') return { rubric: RUBRIC };
+  if (action === 'getCurrentSession') return { session: readCurrentSession() };
+  if (action === 'getSummary') {
+    return {
+      summary: buildSummary(payload.class_id, payload.presenter_name),
+    };
   }
-  return json({ ok: false, error: '알 수 없는 요청입니다.' });
+  if (action === 'getDebugInfo') return { debug: getDebugInfo() };
+  if (action === 'selectPresentation') {
+    return {
+      session: createSession(payload.class_id, payload.presenter_name),
+    };
+  }
+  if (action === 'submitEvaluation') {
+    return {
+      evaluation: saveEvaluation(payload.evaluation),
+    };
+  }
+  return { ok: false, error: '알 수 없는 요청입니다.' };
 }
 
 function createSession(classId, presenterName) {
@@ -204,8 +218,14 @@ function round(value) {
   return Math.round(value * 100) / 100;
 }
 
-function json(payload) {
+function json(payload, callback) {
+  const body = JSON.stringify({ ok: true, ...payload });
+  if (callback) {
+    return ContentService
+      .createTextOutput(`${callback}(${body});`)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService
-    .createTextOutput(JSON.stringify({ ok: true, ...payload }))
+    .createTextOutput(body)
     .setMimeType(ContentService.MimeType.JSON);
 }

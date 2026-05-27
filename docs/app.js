@@ -26,25 +26,41 @@ async function request(action, payload = {}) {
   const url = appsScriptUrl();
   if (!url) return localRequest(action, payload);
 
-  if (action.startsWith("get")) {
-    const params = new URLSearchParams({ action, ...payload });
-    const response = await fetch(`${url}?${params}`);
-    return parseResponse(response);
-  }
-
-  const response = await fetch(url, {
-    method: "POST",
-    body: JSON.stringify({ action, ...payload }),
-  });
-  return parseResponse(response);
+  return jsonpRequest(url, action, payload);
 }
 
-async function parseResponse(response) {
-  const data = await response.json();
-  if (!response.ok || data.ok === false) {
-    throw new Error(data.error || "요청을 처리하지 못했습니다.");
-  }
-  return data;
+function jsonpRequest(url, action, payload) {
+  return new Promise((resolve, reject) => {
+    const callbackName = `seEvalCallback_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    const script = document.createElement("script");
+    const params = new URLSearchParams({
+      action,
+      callback: callbackName,
+      payload: JSON.stringify(payload),
+    });
+
+    const cleanup = () => {
+      delete window[callbackName];
+      script.remove();
+    };
+
+    window[callbackName] = (data) => {
+      cleanup();
+      if (data.ok === false) {
+        reject(new Error(data.error || "요청을 처리하지 못했습니다."));
+        return;
+      }
+      resolve(data);
+    };
+
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("Google Apps Script에 연결하지 못했습니다."));
+    };
+
+    script.src = `${url}?${params.toString()}`;
+    document.body.appendChild(script);
+  });
 }
 
 async function localRequest(action, payload) {
