@@ -222,6 +222,7 @@ async function initAdmin() {
   const summaryBox = document.querySelector("#summary");
 
   classSelect.innerHTML = Object.keys(students)
+    .filter((classId) => Array.isArray(students[classId]))
     .map((classId) => `<option value="${classId}">${classId}분반</option>`)
     .join("");
 
