@@ -1,6 +1,7 @@
 const SHEET_NAMES = {
   session: 'current_session',
   evaluations: 'evaluations',
+  finalScores: 'final_scores',
 };
 
 const STUDENTS = {
@@ -91,6 +92,7 @@ function createSession(classId, presenterName) {
   sheet.clear();
   sheet.appendRow(['class_id', 'presenter_name', 'judges_json', 'created_at']);
   sheet.appendRow([classId, presenterName, JSON.stringify(judges), session.created_at]);
+  updateFinalScore(classId, presenterName);
   return session;
 }
 
@@ -139,6 +141,7 @@ function saveEvaluation(evaluation) {
     stored.comment || '',
     stored.submitted_at,
   ]);
+  updateFinalScore(stored.class_id, stored.presenter_name);
   return stored;
 }
 
@@ -182,6 +185,55 @@ function ensureEvaluationHeader(sheet) {
   sheet.appendRow([
     'class_id', 'presenter_name', 'evaluator_role', 'evaluator_name',
     ...RUBRIC_IDS, 'total_score', 'comment', 'submitted_at',
+  ]);
+}
+
+function updateFinalScore(classId, presenterName) {
+  const summary = buildSummary(classId, presenterName);
+  const sheet = sheetByName(SHEET_NAMES.finalScores);
+  ensureFinalScoresHeader(sheet);
+
+  const rows = sheet.getDataRange().getValues();
+  let targetRow = -1;
+  for (let index = 1; index < rows.length; index += 1) {
+    const row = rows[index];
+    if (String(row[0]) === String(classId) && row[1] === presenterName) {
+      targetRow = index + 1;
+      break;
+    }
+  }
+
+  const values = [
+    classId,
+    presenterName,
+    summary.student_evaluation_count,
+    summary.professor_evaluation_count,
+    summary.student_trimmed_mean,
+    summary.professor_average,
+    summary.final_score,
+    summary.student_evaluation_count >= 10 ? 'complete' : 'waiting_student_scores',
+    new Date().toISOString(),
+  ];
+
+  if (targetRow > 0) {
+    sheet.getRange(targetRow, 1, 1, values.length).setValues([values]);
+  } else {
+    sheet.appendRow(values);
+  }
+}
+
+function ensureFinalScoresHeader(sheet) {
+  if (sheet.getLastRow() > 0) return;
+  sheet.appendRow([
+    'class_id',
+    'presenter_name',
+    'student_evaluation_count',
+    'professor_evaluation_count',
+    'student_trimmed_mean',
+    'professor_average',
+    'final_score',
+    'status',
+    'updated_at',
   ]);
 }
 

@@ -18,12 +18,6 @@ GitHub Pages에는 서버 코드를 실행할 수 없기 때문에 `docs/` 폴�
 5. `Branch`는 `main`, 폴더는 `/docs`로 선택하고 저장합니다.
 6. 몇 분 뒤 표시되는 Pages URL로 접속합니다.
 
-배포 후 페이지는 보통 아래 형태입니다.
-
-```text
-https://사용자명.github.io/저장소명/
-```
-
 ## GitHub Pages 파일
 
 - `docs/index.html`: 운영자 페이지
@@ -32,9 +26,7 @@ https://사용자명.github.io/저장소명/
 - `docs/data/students.json`: 학생 목록
 - `docs/config.js`: Google Apps Script URL 설정
 
-`docs/config.js`의 `APPS_SCRIPT_URL`이 비어 있으면 브라우저의 `localStorage`에만 저장되는 데모 모드로 동작합니다. 이 상태에서는 같은 컴퓨터, 같은 브라우저 탭끼리만 현재 발표자와 평가 데이터가 공유됩니다.
-
-실제 수업에서 여러 학생이 각자 접속하려면 Google Apps Script URL을 연결해야 합니다.
+`docs/config.js`의 `APPS_SCRIPT_URL`이 비어 있으면 브라우저의 `localStorage`에만 저장되는 데모 모드로 동작합니다. 실제 수업에서 여러 학생이 각자 접속하려면 Google Apps Script URL을 연결해야 합니다.
 
 ## Google Apps Script 연결
 
@@ -45,15 +37,17 @@ https://사용자명.github.io/저장소명/
 5. 유형은 `웹 앱`으로 선택합니다.
 6. 실행 권한은 본인, 액세스 권한은 `모든 사용자`로 설정합니다.
 7. 배포 후 생성된 웹 앱 URL을 복사합니다.
-8. `docs/config.js`를 열고 아래처럼 붙여넣습니다.
+8. `docs/config.js`의 `APPS_SCRIPT_URL`에 붙여넣고 GitHub에 push합니다.
 
-```js
-window.SE_EVAL_CONFIG = {
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/배포ID/exec",
-};
-```
+## Google Sheet 탭
 
-이후 변경 사항을 다시 GitHub에 push하면 Pages에 반영됩니다.
+Apps Script는 아래 탭을 자동으로 만듭니다.
+
+- `current_session`: 현재 발표자와 심사위원 10명
+- `evaluations`: 학생/교수의 개별 평가 원자료
+- `final_scores`: 발표자별 학생 절단 평균, 교수 평균, 최종 점수
+
+`final_scores`는 발표자 선택 또는 평가 제출이 발생할 때마다 자동 갱신됩니다.
 
 ## 로컬 FastAPI 실행
 
