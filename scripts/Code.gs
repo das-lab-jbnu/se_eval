@@ -46,6 +46,7 @@ function doGet(event) {
       summary: buildSummary(event.parameter.class_id, event.parameter.presenter_name),
     });
   }
+  if (action === 'getDebugInfo') return json({ debug: getDebugInfo() });
   return json({ ok: false, error: '알 수 없는 요청입니다.' });
 }
 
@@ -173,6 +174,19 @@ function ensureEvaluationHeader(sheet) {
 function sheetByName(name) {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   return spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
+}
+
+function getDebugInfo() {
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  return {
+    spreadsheet_name: spreadsheet.getName(),
+    spreadsheet_url: spreadsheet.getUrl(),
+    sheets: spreadsheet.getSheets().map((sheet) => ({
+      name: sheet.getName(),
+      rows: sheet.getLastRow(),
+      columns: sheet.getLastColumn(),
+    })),
+  };
 }
 
 function trimmedMean(values) {
