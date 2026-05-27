@@ -73,7 +73,6 @@ async function initAdmin() {
   const classSelect = document.querySelector("#classId");
   const presenterSelect = document.querySelector("#presenterName");
   const judgeList = document.querySelector("#judgeList");
-  const summaryBox = document.querySelector("#summary");
 
   classSelect.innerHTML = Object.keys(students)
     .filter((classId) => Array.isArray(students[classId]))
@@ -90,22 +89,8 @@ async function initAdmin() {
     try {
       const current = await api("/api/presentations/current");
       judgeList.innerHTML = current.judges.map((name) => `<li>${name}</li>`).join("");
-      const summary = await api(
-        `/api/summary?class_id=${encodeURIComponent(current.class_id)}&presenter_name=${encodeURIComponent(
-          current.presenter_name,
-        )}`,
-      );
-      summaryBox.innerHTML = `
-        <strong>${current.class_id}분반 ${current.presenter_name}</strong>
-        <span>학생 평가 ${summary.student_evaluation_count}/10</span>
-        <span>교수 평가 ${summary.professor_evaluation_count}</span>
-        <span>학생 절단 평균 ${summary.student_trimmed_mean ?? "-"}</span>
-        <span>교수 평균 ${summary.professor_average ?? "-"}</span>
-        <span>최종 ${summary.final_score ?? "-"}/50</span>
-      `;
     } catch {
       judgeList.innerHTML = "";
-      summaryBox.textContent = "아직 선택된 발표자가 없습니다.";
     }
   }
 

@@ -219,7 +219,6 @@ async function initAdmin() {
   const classSelect = document.querySelector("#classId");
   const presenterSelect = document.querySelector("#presenterName");
   const judgeList = document.querySelector("#judgeList");
-  const summaryBox = document.querySelector("#summary");
 
   classSelect.innerHTML = Object.keys(students)
     .filter((classId) => Array.isArray(students[classId]))
@@ -234,21 +233,9 @@ async function initAdmin() {
     try {
       const { session } = await request("getCurrentSession");
       judgeList.innerHTML = session.judges.map((name) => `<li>${name}</li>`).join("");
-      const { summary } = await request("getSummary", {
-        class_id: session.class_id,
-        presenter_name: session.presenter_name,
-      });
-      summaryBox.innerHTML = `
-        <strong>${session.class_id}분반 ${session.presenter_name}</strong>
-        <span>학생 평가 ${summary.student_evaluation_count}/10</span>
-        <span>교수 평가 ${summary.professor_evaluation_count}</span>
-        <span>학생 절단 평균 ${summary.student_trimmed_mean ?? "-"}</span>
-        <span>교수 평균 ${summary.professor_average ?? "-"}</span>
-        <span>최종 ${summary.final_score ?? "-"}/50</span>
-      `;
     } catch (error) {
       judgeList.innerHTML = "";
-      summaryBox.textContent = error.message;
+      setMessage(error.message, "error");
     }
   }
 
